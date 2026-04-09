@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: uid
+    // Fields: uid, email, displayName, role, xp, streak, lastActive
+    //
+    // Collection: curriculum
+    // Document ID: curriculumId
+    // Fields: id, title, content, grade, createdAt
+    //
+    // Collection: questions
+    // Document ID: questionId
+    // Fields: id, question, options, correctAnswer, explanation, curriculumId
+    //
+    // Collection: submissions
+    // Document ID: submissionId
+    // Fields: id, userId, questionId, isCorrect, xpEarned, timestamp
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "tonsadbiy@gmail.com" && request.auth.token.email_verified == true) ||
+         (request.auth.token.email == "master@thptnguyenhue.edu.vn" && request.auth.token.email_verified == true));
+    }
+
+    function isTeacher() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'role', 'xp', 'streak', 'lastActive', 'lastLogin']) &&
+             data.uid is string && data.email is string && data.displayName is string &&
+             data.role in ['student', 'teacher', 'admin'] &&
+             data.xp is int && data.streak is int &&
+             data.lastActive is string && data.lastLogin is string;
+    }
+
+    // Rules
+    match /users/{uid} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(uid) && isValidUser(request.resource.data) && request.resource.data.role == 'student';
+      allow update: if (isOwner(uid) && request.resource.data.role == resource.data.role) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /curriculum/{curriculumId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() || isTeacher();
+      allow delete: if isAdmin();
+    }
+
+    match /questions/{questionId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() || isTeacher();
+      allow delete: if isAdmin();
+    }
+
+    match /submissions/{submissionId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin() || isTeacher());
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
+    }
+  }
+}

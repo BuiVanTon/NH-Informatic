@@ -1,0 +1,67 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Thông tin cá nhân và tiến độ học tập của học sinh/giáo viên.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "ID người dùng từ Firebase Auth" },
+        "email": { "type": "string", "format": "email", "description": "Email người dùng" },
+        "displayName": { "type": "string", "description": "Tên hiển thị" },
+        "role": { "type": "string", "enum": ["student", "teacher", "admin"], "description": "Vai trò trong hệ thống (student, teacher, admin)" },
+        "xp": { "type": "integer", "description": "Điểm kinh nghiệm tích lũy" },
+        "streak": { "type": "integer", "description": "Số ngày học liên tiếp" },
+        "lastActive": { "type": "string", "format": "date-time", "description": "Lần cuối hoạt động (ISO 8601)" },
+        "lastLogin": { "type": "string", "format": "date-time", "description": "Lần cuối đăng nhập (ISO 8601)" }
+      },
+      "required": ["uid", "email", "displayName", "role", "xp", "streak", "lastActive", "lastLogin"]
+    },
+    "Curriculum": {
+      "title": "Curriculum",
+      "description": "Nội dung giáo trình Tin học.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "description": "Tiêu đề bài học" },
+        "content": { "type": "string", "description": "Nội dung bài học (Markdown)" },
+        "grade": { "type": "integer", "description": "Khối lớp (10, 11, 12)" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "content", "grade", "createdAt"]
+    },
+    "Question": {
+      "title": "Question",
+      "description": "Câu hỏi trắc nghiệm.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "question": { "type": "string", "description": "Nội dung câu hỏi" },
+        "options": { "type": "array", "items": { "type": "string" }, "description": "4 lựa chọn" },
+        "correctAnswer": { "type": "integer", "description": "Index đáp án đúng (0-3)" },
+        "explanation": { "type": "string", "description": "Giải thích đáp án" },
+        "curriculumId": { "type": "string", "description": "ID bài học liên quan" }
+      },
+      "required": ["id", "question", "options", "correctAnswer", "explanation", "curriculumId"]
+    },
+    "Submission": {
+      "title": "Submission",
+      "description": "Lịch sử làm bài của học sinh.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string", "description": "ID học sinh" },
+        "questionId": { "type": "string", "description": "ID câu hỏi" },
+        "isCorrect": { "type": "boolean", "description": "Kết quả làm bài" },
+        "xpEarned": { "type": "integer", "description": "XP nhận được" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "questionId", "isCorrect", "xpEarned", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": { "schema": "UserProfile", "description": "Dữ liệu người dùng" },
+    "/curriculum/{curriculumId}": { "schema": "Curriculum", "description": "Dữ liệu giáo trình" },
+    "/questions/{questionId}": { "schema": "Question", "description": "Ngân hàng câu hỏi" },
+    "/submissions/{submissionId}": { "schema": "Submission", "description": "Kết quả nộp bài" }
+  }
+}

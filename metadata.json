@@ -1,0 +1,9 @@
+{
+  "name": "THPT Nguyễn Huệ Informatics Hub",
+  "description": "Nền tảng học tập Tin học tích hợp AI Mentor và Quiz phong cách Duolingo cho học sinh THPT Nguyễn Huệ.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
